@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+import json
+import requests
+import sys
+import logging
+
+to=sys.argv[1]
+subject=sys.argv[2]
+info=sys.argv[3]
+
+
+# Set the webhook_url to the one provided by Slack when you create the webhook at https://my.slack.com/services/new/incoming-webhook/
+webhook_url = 'YOUR SLACK URL'
+
+logging.basicConfig(filename='/tmp/slack.log', filemode='w', level=logging.INFO)
+logging.info(subject)
+
+if "PROBLEM" in subject:
+    emoji=":critical:"
+    color="danger"
+elif "OK" in subject:
+    emoji=":thumbsup:"
+    color="good"
+elif "RECOVER" in subject:
+    emoji=":warning:"
+    color="warning"
+else:
+    emoji=":zabbix:"
+    color="#439FE0"
+message=subject + "\n" + info
+print emoji
+
+data={'channel': '{}'.format(to), 'username': 'Zabbix', 'icon_emoji':'{}'.format(emoji), "attachments": [
+        {'color': '{}'.format(color), "text": '{}'.format(message)}]}
+
+print data
+slack_data = data
+print slack_data
+
+
+
+response = requests.post(
+    webhook_url, data=json.dumps(slack_data),
+    headers={'Content-Type': 'application/json'}
+)
+if response.status_code != 200:
+    raise ValueError(
+        'Request to slack returned an error %s, the response is:\n%s'
+        % (response.status_code, response.text)
+    )
